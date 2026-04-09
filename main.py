@@ -108,8 +108,16 @@ async def fetch_spotify_playlist_with_dates(playlist_id: str):
         return []
 
 if __name__ == "__main__":
-    playlist = "2lDWG19UZVgXHthaAjN3VN"
-    tracks = asyncio.run(fetch_spotify_playlist_with_dates(playlist))
+    playlist_input = input("Введите ссылку на плейлист Spotify (или ID): ").strip()
+    
+    # Извлечение ID из ссылки, если это ссылка
+    playlist_id = playlist_input
+    if "playlist/" in playlist_input:
+        playlist_id = playlist_input.split("playlist/")[1].split("?")[0]
+    elif ":" in playlist_input:
+        playlist_id = playlist_input.split(":")[-1]
+
+    tracks = asyncio.run(fetch_spotify_playlist_with_dates(playlist_id))
     
     if tracks:
         print(f"\n--- Всего найдено: {len(tracks)} ---")
@@ -123,5 +131,12 @@ if __name__ == "__main__":
             print(f"   📅 Добавлен: {date_str}")
             print(f"   🖼️ Обложка: {track['thumbnail'] if track['thumbnail'] else 'Отсутствует'}")
             print("-" * 30)
+            
+        save_json = input("\nСохранить результат в JSON? (y/n): ").lower().strip()
+        if save_json == 'y':
+            filename = f"playlist_{playlist_id}.json"
+            with open(filename, 'w', encoding='utf-8') as f:
+                json.dump(tracks, f, ensure_ascii=False, indent=4)
+            print(f"✅ Данные сохранены в файл: {filename}")
     else:
         print("Ошибка или пустой плейлист.")
